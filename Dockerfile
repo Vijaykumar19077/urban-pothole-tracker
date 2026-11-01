@@ -2,6 +2,8 @@ FROM php:8.2-apache
 
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
+RUN usermod -a -G 1000 www-data
+
 RUN a2enmod rewrite headers
 
 COPY docker/apache-security.conf /etc/apache2/conf-available/app-security.conf
