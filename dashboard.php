@@ -1,0 +1,15 @@
+<?php
+require_once __DIR__.'/includes/db.php';require_once __DIR__.'/includes/functions.php';
+$where=[];$params=[];
+if(!empty($_GET['severity'])){$where[]='r.severity=?';$params[]=$_GET['severity'];}
+if(!empty($_GET['status'])){$where[]='r.status=?';$params[]=$_GET['status'];}
+if(!empty($_GET['q'])){$where[]='(r.location LIKE ? OR r.title LIKE ?)';$params[]='%'.$_GET['q'].'%';$params[]='%'.$_GET['q'].'%';}
+$sql="SELECT r.*,u.name citizen,t.team_name FROM reports r JOIN users u ON u.id=r.user_id LEFT JOIN teams t ON t.id=r.assigned_team_id";
+if($where)$sql.=' WHERE '.implode(' AND ',$where);$sql.=' ORDER BY r.created_at DESC';
+$st=$pdo->prepare($sql);$st->execute($params);$reports=$st->fetchAll();
+$pageTitle='Public reports';require __DIR__.'/includes/header.php';
+?>
+<section class="page-heading"><div><span class="eyebrow">TRANSPARENCY IN ACTION</span><h1>Public reports</h1><p class="muted">Explore road hazards reported by your community and follow repair progress.</p></div><?php if(is_logged_in()&&!is_admin()):?><a class="btn btn-primary" href="citizen/report.php">＋ Report an issue</a><?php endif;?></section>
+<form class="filter-bar" method="get"><input name="q" placeholder="Search location or issue..." value="<?=e($_GET['q']??'')?>"><select name="severity"><option value="">All severities</option><?php foreach(['Low','Moderate','Critical'] as $s):?><option <?=$s===($_GET['severity']??'')?'selected':''?>><?=$s?></option><?php endforeach;?></select><select name="status"><option value="">All statuses</option><?php foreach(['Reported','Under Repair','Resolved'] as $s):?><option <?=$s===($_GET['status']??'')?'selected':''?>><?=$s?></option><?php endforeach;?></select><button class="btn btn-dark">Apply filters</button><a class="btn btn-light" href="dashboard.php">Reset</a></form>
+<div class="report-grid"><?php if(!$reports):?><div class="empty-state">No reports match your filters.</div><?php endif;?><?php foreach($reports as $r):?><article class="public-card"><?php if($r['photo']):?><img class="report-photo" src="uploads/<?=e($r['photo'])?>" alt="Reported damage"><?php else:?><div class="photo-placeholder">⌁ <span>ROAD ISSUE</span></div><?php endif;?><div class="public-card-body"><div class="card-tags"><span class="severity severity-<?=strtolower($r['severity'])?>"><?=e($r['severity'])?></span><span class="status status-<?=status_class($r['status'])?>"><?=e($r['status'])?></span></div><h3><?=e($r['title'])?></h3><p class="location-line">📍 <?=e($r['location'])?></p><p><?=e($r['description'])?></p><div class="card-meta"><span>Reported by <?=e($r['citizen'])?></span><span><?=date('d M Y',strtotime($r['created_at']))?></span></div><?php if($r['team_name']):?><div class="assigned-note">Assigned to: <?=e($r['team_name'])?></div><?php endif;?></div></article><?php endforeach;?></div>
+<?php require __DIR__.'/includes/footer.php';?>
