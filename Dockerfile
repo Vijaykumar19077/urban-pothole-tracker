@@ -14,6 +14,8 @@ COPY docker/php-custom.ini "$PHP_INI_DIR/conf.d/zz-app.ini"
 
 COPY . /var/www/html/urban-pothole-tracker/
 
+RUN printf '%s\n' '<?php' 'header("Location: /urban-pothole-tracker/");' 'exit;' > /var/www/html/index.php
+
 RUN mkdir -p /var/www/html/urban-pothole-tracker/uploads \
     && chown -R www-data:www-data /var/www/html/urban-pothole-tracker
 
