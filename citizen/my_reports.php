@@ -1,0 +1,8 @@
+<?php
+require_once __DIR__.'/../includes/db.php';require_once __DIR__.'/../includes/functions.php';require_login();
+$st=$pdo->prepare("SELECT r.*,t.team_name FROM reports r LEFT JOIN teams t ON t.id=r.assigned_team_id WHERE r.user_id=? ORDER BY r.created_at DESC");$st->execute([$_SESSION['user_id']]);$reports=$st->fetchAll();
+$pageTitle='My reports';require __DIR__.'/../includes/header.php';
+?>
+<section class="page-heading"><div><span class="eyebrow">YOUR CONTRIBUTION</span><h1>My reports</h1><p class="muted">Track the progress of road issues you've submitted.</p></div><a class="btn btn-primary" href="report.php">＋ New report</a></section>
+<div class="report-list"><?php if(!$reports):?><div class="empty-state">You haven't submitted any reports yet. <a href="report.php">Submit your first report.</a></div><?php endif;?><?php foreach($reports as $r):?><article class="report-row"><?php if($r['photo']):?><img class="thumb" src="../uploads/<?=e($r['photo'])?>" alt="Damage photo"><?php else:?><div class="report-symbol">⚑</div><?php endif;?><div class="report-main"><strong><?=e($r['title'])?></strong><span><?=e($r['location'])?> · <?=e($r['issue_type'])?> · <?=date('d M Y',strtotime($r['created_at']))?></span><?php if($r['team_name']):?><small>Team: <?=e($r['team_name'])?></small><?php endif;?></div><span class="severity severity-<?=strtolower($r['severity'])?>"><?=e($r['severity'])?></span><span class="status status-<?=status_class($r['status'])?>"><?=e($r['status'])?></span></article><?php endforeach;?></div>
+<?php require __DIR__.'/../includes/footer.php';?>
