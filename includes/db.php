@@ -24,6 +24,8 @@ try {
     );
 } catch (PDOException $ex) {
     error_log($ex->getMessage());
+    error_log('CA file exists: ' . (file_exists('/etc/secrets/ca.pem') ? 'YES' : 'NO'));
+    error_log('CA file readable: ' . (is_readable('/etc/secrets/ca.pem') ? 'YES' : 'NO'));
     http_response_code(500);
     exit('Database connection failed. Check hosting configuration.');
 }
